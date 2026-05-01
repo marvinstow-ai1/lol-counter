@@ -24,36 +24,37 @@ export function ItemCard({ version, itemRow }: Props) {
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="glass hover-lift rounded-xl p-4 flex gap-4 items-start relative"
+      onTouchStart={() => setHover((h) => !h)}
+      className="glass hover-lift rounded-xl p-3 sm:p-4 flex gap-3 sm:gap-4 items-start relative"
     >
       <div className="relative flex-shrink-0">
         <img
           src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/item/${itemRow.item_id}.png`}
           alt={item.name}
-          className="w-16 h-16 rounded-lg ring-2 ring-rift-gold/50"
+          className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg ring-2 ring-rift-gold/50"
         />
-        <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-rift-gold text-rift-bg text-xs font-black flex items-center justify-center shadow-lg">
+        <span className="absolute -top-2 -left-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-rift-gold text-rift-bg text-[10px] sm:text-xs font-black flex items-center justify-center shadow-lg">
           {itemRow.priority}
         </span>
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2 mb-1">
-          <h4 className="font-display font-bold text-rift-goldLight truncate">
+        <div className="flex items-baseline gap-2 mb-1 flex-wrap">
+          <h4 className="font-display text-sm sm:text-base font-bold text-rift-goldLight truncate">
             {item.name}
           </h4>
           {item.gold?.total != null && (
-            <span className="text-xs text-rift-gold/80 font-mono whitespace-nowrap">
+            <span className="text-[10px] sm:text-xs text-rift-gold/80 font-mono whitespace-nowrap">
               {item.gold.total}g
             </span>
           )}
         </div>
         {itemRow.reason && (
-          <p className="text-xs text-rift-blue/90 italic mb-1">
+          <p className="text-[11px] sm:text-xs text-rift-blue/90 italic mb-1">
             {itemRow.reason}
           </p>
         )}
-        <p className="text-[11px] text-rift-goldLight/60 line-clamp-2 leading-relaxed">
+        <p className="text-[10px] sm:text-[11px] text-rift-goldLight/60 line-clamp-2 leading-relaxed">
           {desc}
         </p>
       </div>

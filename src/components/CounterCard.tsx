@@ -44,35 +44,35 @@ export function CounterCard({ version, counter, onPick }: Props) {
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-rift-bg via-rift-bg/30 to-transparent" />
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1.5 sm:gap-2">
           <span
-            className={`tier-badge-${counter.tier} px-2.5 py-1 rounded-md text-xs font-black tracking-widest`}
+            className={`tier-badge-${counter.tier} px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-black tracking-widest`}
           >
-            {counter.tier}-TIER
+            {counter.tier}
           </span>
           {role && (
-            <span className="px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-rift-bg/70 backdrop-blur-sm border border-rift-gold/30 text-rift-gold">
+            <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider bg-rift-bg/70 backdrop-blur-sm border border-rift-gold/30 text-rift-gold">
               {role}
             </span>
           )}
         </div>
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className="font-display text-2xl font-bold gold-text drop-shadow-lg">
+        <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3">
+          <div className="font-display text-lg sm:text-2xl font-bold gold-text drop-shadow-lg leading-tight">
             {champ.name}
           </div>
-          <div className="text-xs text-rift-goldLight/70 italic line-clamp-1">
+          <div className="text-[10px] sm:text-xs text-rift-goldLight/70 italic line-clamp-1">
             {champ.title}
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
         <div>
           <div className="flex items-baseline justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-widest text-rift-goldLight/50">
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-rift-goldLight/50">
               Win Rate
             </span>
-            <span className="font-display text-lg font-bold text-rift-blue">
+            <span className="font-display text-base sm:text-lg font-bold text-rift-blue">
               {wr.toFixed(1)}%
             </span>
           </div>
@@ -84,7 +84,7 @@ export function CounterCard({ version, counter, onPick }: Props) {
           </div>
         </div>
         {counter.notes && (
-          <p className="text-xs text-rift-goldLight/60 leading-relaxed line-clamp-2">
+          <p className="text-[11px] sm:text-xs text-rift-goldLight/60 leading-relaxed line-clamp-2">
             {counter.notes}
           </p>
         )}

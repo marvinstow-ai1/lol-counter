@@ -64,14 +64,18 @@ export default function Home() {
     setError(null);
     fetch(`/api/counter?champion=${encodeURIComponent(selected)}`)
       .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error ?? "fetch failed");
-        return r.json();
+        const body = await r.json();
+        if (!r.ok) {
+          const msg = body.error ?? "fetch failed";
+          throw new Error(body.hint ? `${msg}\n\nHint: ${body.hint}` : msg);
+        }
+        return body;
       })
       .then((d: CounterPayload) => {
         setData(d);
         push(selected);
       })
-      .catch((e) => setError(String(e)))
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [selected]);
 
@@ -172,7 +176,7 @@ export default function Home() {
       {/* Error */}
       {error && (
         <div className="px-6 max-w-3xl mx-auto py-8">
-          <div className="glass border-rift-danger/40 rounded-xl p-4 text-sm text-rift-danger">
+          <div className="glass border-rift-danger/40 rounded-xl p-4 text-sm text-rift-danger whitespace-pre-line">
             ⚠ {error}
           </div>
         </div>

@@ -12,15 +12,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "missing ?champion=" }, { status: 400 });
   }
 
-  const [version, champions, items] = await Promise.all([
-    getLatestVersion(),
-    getChampions(),
-    getItems(),
-  ]);
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          "Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel → Settings → Environment Variables, then Redeploy.",
+      },
+      { status: 500 }
+    );
+  }
+
+  let version = "";
+  let champions: Awaited<ReturnType<typeof getChampions>> = {};
+  let items: Awaited<ReturnType<typeof getItems>> = {};
+  try {
+    [version, champions, items] = await Promise.all([
+      getLatestVersion(),
+      getChampions(),
+      getItems(),
+    ]);
+  } catch (e) {
+    return NextResponse.json(
+      { error: `Data Dragon fetch failed: ${(e as Error).message}` },
+      { status: 502 }
+    );
+  }
 
   const champion = champions[championId];
   if (!champion) {
-    return NextResponse.json({ error: "champion not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: `champion "${championId}" not found in Data Dragon` },
+      { status: 404 }
+    );
   }
 
   const [{ data: counters, error: cErr }, { data: counterItems, error: iErr }] =
@@ -38,8 +61,20 @@ export async function GET(req: NextRequest) {
     ]);
 
   if (cErr || iErr) {
+    const detail = cErr ?? iErr;
+    console.error("[api/counter] supabase error", detail);
     return NextResponse.json(
-      { error: cErr?.message ?? iErr?.message ?? "supabase error" },
+      {
+        error: `Supabase: ${detail?.message ?? "unknown error"}`,
+        hint:
+          detail?.code === "42P01"
+            ? "Table not found. Run supabase/schema.sql in the Supabase SQL Editor."
+            : detail?.code === "PGRST301" || detail?.message?.includes("permission")
+              ? "Permission denied. Re-run schema.sql to set up RLS policies."
+              : detail?.code === "PGRST116" || detail?.message?.includes("JWT")
+                ? "Invalid Supabase key. Check NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel."
+                : undefined,
+      },
       { status: 500 }
     );
   }

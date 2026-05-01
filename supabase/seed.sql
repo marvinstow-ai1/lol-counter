@@ -432,7 +432,8 @@ insert into counters (champion_id, counter_id, counter_role, win_rate, tier, not
 ('Taliyah','Olaf','JUNGLE',53.0,'B','True Dmg','14.X'),
 ('Velkoz','Annie','MIDDLE',54.0,'A','Stun','14.X'),
 ('Velkoz','LeBlanc','MIDDLE',53.5,'B','Burst','14.X'),
-('Velkoz','Pantheon','MIDDLE',53.0,'B','All-In','14.X');
+('Velkoz','Pantheon','MIDDLE',53.0,'B','All-In','14.X')
+on conflict (champion_id, counter_id, counter_role) do nothing;
 
 -- ============================================================
 -- COUNTER ITEMS (champion_id = the champ being countered)
@@ -845,4 +846,5 @@ insert into counter_items (champion_id, item_id, reason, priority) values
 ('Taliyah','3814','Edge of Night',2),
 ('Velkoz','3211','Hexdrinker',1),
 ('Velkoz','3814','Edge of Night',2),
-('Velkoz','3140','QSS gegen R',3);
+('Velkoz','3140','QSS gegen R',3)
+on conflict (champion_id, item_id) do nothing;

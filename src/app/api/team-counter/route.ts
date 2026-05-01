@@ -4,7 +4,7 @@ import { getChampions, getItems, getLatestVersion } from "@/lib/ddragon";
 import { scoreTeam, type Role, type CounterRow, type ItemRow } from "@/lib/teamScore";
 
 export async function POST(req: NextRequest) {
-  let body: { enemies?: string[]; role?: Role };
+  let body: { enemies?: string[]; ownTeam?: string[]; role?: Role };
   try {
     body = await req.json();
   } catch {
@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   const enemies = (body.enemies ?? []).filter(Boolean);
+  const ownTeam = (body.ownTeam ?? []).filter(Boolean);
   const role = (body.role ?? "ALL") as Role;
 
   if (enemies.length < 2) {
@@ -20,9 +21,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  if (enemies.length > 5) {
+  if (enemies.length > 5 || ownTeam.length > 4) {
     return NextResponse.json(
-      { error: "max 5 enemy champions allowed" },
+      { error: "team size limits exceeded (max 5 enemies, 4 own)" },
       { status: 400 }
     );
   }
@@ -42,8 +43,8 @@ export async function POST(req: NextRequest) {
     getItems(),
   ]);
 
-  // Validate enemy ids
-  const unknown = enemies.filter((e) => !champions[e]);
+  const allInputs = [...enemies, ...ownTeam];
+  const unknown = allInputs.filter((c) => !champions[c]);
   if (unknown.length) {
     return NextResponse.json(
       { error: `unknown champion ids: ${unknown.join(", ")}` },
@@ -64,37 +65,49 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Tag map for class diversity scoring
+  const championTags: Record<string, string[]> = {};
+  for (const [id, c] of Object.entries(champions)) {
+    championTags[id] = c.tags ?? [];
+  }
+
   const { recommendations, overlapItems } = scoreTeam({
     enemies,
+    ownTeam,
     role,
     counterRows: (counterRows ?? []) as CounterRow[],
     itemRows: (itemRows ?? []) as ItemRow[],
+    championTags,
   });
 
-  // Hydrate with Data Dragon details
+  // Hydrate
   const enrichedRecs = recommendations
-    .map((r) => ({
-      ...r,
-      champion: champions[r.candidateId] ?? null,
-    }))
+    .map((r) => ({ ...r, champion: champions[r.candidateId] ?? null }))
     .filter((r) => r.champion);
 
   const enrichedOverlap = overlapItems
-    .map((o) => ({
-      ...o,
-      item: items[o.item_id] ?? null,
-    }))
+    .map((o) => ({ ...o, item: items[o.item_id] ?? null }))
     .filter((o) => o.item);
 
-  const enrichedEnemies = enemies.map((id) => ({
-    id,
-    champion: champions[id] ?? null,
-  }));
+  const enrichedEnemies = enemies.map((id) => ({ id, champion: champions[id] ?? null }));
+  const enrichedOwn = ownTeam.map((id) => ({ id, champion: champions[id] ?? null }));
+
+  // Available roles in the result set (for filter UI to hide empty tabs)
+  const availableRoles = Array.from(
+    new Set(
+      (counterRows ?? [])
+        .filter((r) => recommendations.some((rec) => rec.candidateId === r.counter_id))
+        .map((r) => r.counter_role)
+        .filter((r): r is string => Boolean(r))
+    )
+  );
 
   return NextResponse.json({
     version,
     enemies: enrichedEnemies,
+    ownTeam: enrichedOwn,
     overlapItems: enrichedOverlap,
     recommendations: enrichedRecs,
+    availableRoles,
   });
 }

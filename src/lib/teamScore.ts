@@ -1,13 +1,12 @@
 /**
  * Team Counter scoring — pure functions, no IO.
- * Given a team of enemies + counter / item rows from the DB, computes a
- * weighted score for every candidate champion that counters >=1 enemy.
  *
- *   final = winRate (0..50) + counterTier (0..30) + itemOverlap (0..20)
+ *   final = winRate    (0..45)   weighted avg WR over enemies the candidate counters
+ *         + counter    (0..25)   sum of tier values
+ *         + itemOverlap(0..15)   shared counter items hitting multiple enemies
+ *         + teamFit    (0..15)   class diversity bonus from DDragon tags
  *
- * Item overlap is a TEAM-LEVEL value: identical for every candidate, but
- * still factored in so picks against a team with lots of shared items get
- * a flat bonus.
+ * Picks already in own/enemy team are excluded.
  */
 
 export type Tier = "S" | "A" | "B" | "C" | "D";
@@ -35,7 +34,9 @@ export interface Recommendation {
   winRateScore: number;
   counterScore: number;
   itemOverlapScore: number;
+  teamFitScore: number;
   matchups: CounterRow[];
+  newTags: string[];
   tags: string[];
   color: "green" | "yellow" | "red";
 }
@@ -46,9 +47,10 @@ export interface OverlapItem {
   reasons: { enemy: string; reason: string | null }[];
 }
 
-const W_WINRATE = 0.5;
-const W_COUNTER = 0.3;
-const W_OVERLAP = 0.2;
+const W_WINRATE = 45;
+const W_COUNTER = 25;
+const W_OVERLAP = 15;
+const W_TEAMFIT = 15;
 
 const TIER_VALUE: Record<Tier, number> = { S: 5, A: 4, B: 3, C: 2, D: 1 };
 const NEUTRAL_WR = 50;
@@ -57,21 +59,26 @@ const WR_CEIL = 60;
 
 export function scoreTeam(args: {
   enemies: string[];
+  ownTeam: string[];
   role: Role;
   counterRows: CounterRow[];
   itemRows: ItemRow[];
+  championTags: Record<string, string[]>;
 }): { recommendations: Recommendation[]; overlapItems: OverlapItem[] } {
-  const { enemies, role, counterRows, itemRows } = args;
+  const { enemies, ownTeam, role, counterRows, itemRows, championTags } = args;
 
-  // 1) Group counter rows by candidate (the champion that counters someone)
+  const exclude = new Set([...enemies, ...ownTeam]);
+
+  // 1) Group counter rows by candidate
   const byCandidate: Record<string, CounterRow[]> = {};
   for (const row of counterRows) {
     if (!enemies.includes(row.champion_id)) continue;
+    if (exclude.has(row.counter_id)) continue;
     if (role !== "ALL" && row.counter_role && row.counter_role !== role) continue;
     (byCandidate[row.counter_id] ??= []).push(row);
   }
 
-  // 2) Compute item overlap (which items target multiple enemies?)
+  // 2) Item overlap (team-wide)
   const itemEnemies: Record<string, { reason: string | null; enemy: string }[]> = {};
   for (const row of itemRows) {
     if (!enemies.includes(row.champion_id)) continue;
@@ -85,34 +92,46 @@ export function scoreTeam(args: {
       reasons: list,
     }))
     .sort((a, b) => b.againstEnemies.length - a.againstEnemies.length);
+  const overlapBonus = Math.min(overlapItems.length / 5, 1) * W_OVERLAP;
 
-  const overlapBonus =
-    Math.min(overlapItems.length / 5, 1) * (W_OVERLAP * 100);
+  // 3) Own-team class tags (for team-fit bonus)
+  const ownTags = new Set<string>();
+  for (const t of ownTeam) (championTags[t] ?? []).forEach((tag) => ownTags.add(tag));
 
-  // 3) Score each candidate
+  // 4) Score each candidate
   const recs: Recommendation[] = Object.entries(byCandidate).map(
     ([candidateId, matchups]) => {
+      // Win rate
       const winRates = matchups.map((m) => m.win_rate ?? NEUTRAL_WR);
-      const avgWR =
-        winRates.reduce((a, b) => a + b, 0) / Math.max(1, winRates.length);
+      const avgWR = winRates.reduce((a, b) => a + b, 0) / Math.max(1, winRates.length);
       const winRateScore =
-        clamp01((avgWR - WR_FLOOR) / (WR_CEIL - WR_FLOOR)) * (W_WINRATE * 100);
+        clamp01((avgWR - WR_FLOOR) / (WR_CEIL - WR_FLOOR)) * W_WINRATE;
 
-      const tierSum = matchups.reduce(
-        (s, m) => s + (TIER_VALUE[m.tier] ?? 1),
-        0
-      );
+      // Counter tier
+      const tierSum = matchups.reduce((s, m) => s + (TIER_VALUE[m.tier] ?? 1), 0);
       const counterScore =
-        (tierSum / (5 * Math.max(1, enemies.length))) * (W_COUNTER * 100);
+        (tierSum / (5 * Math.max(1, enemies.length))) * W_COUNTER;
 
-      const totalScore = winRateScore + counterScore + overlapBonus;
+      // Team fit: how many class tags this candidate adds that are new to own team
+      const candTags = championTags[candidateId] ?? [];
+      const newTags = candTags.filter((t) => !ownTags.has(t));
+      const teamFitScore =
+        ownTeam.length > 0
+          ? clamp01(newTags.length / Math.max(1, candTags.length || 1)) * W_TEAMFIT
+          : 0;
 
+      const totalScore =
+        winRateScore + counterScore + overlapBonus + teamFitScore;
+
+      // Tags
       const tags: string[] = [];
       if (totalScore >= 70) tags.push("Strong Counter");
       else if (totalScore < 50) tags.push("Situational");
       if (matchups.length >= 3) tags.push(`Counters ${matchups.length} Enemies`);
       if (matchups.some((m) => m.tier === "S")) tags.push("Tier S Pick");
       if (overlapItems.length >= 2) tags.push(`Item Overlap x${overlapItems.length}`);
+      if (ownTeam.length > 0 && newTags.length > 0)
+        tags.push(`Fills ${newTags.join(" / ")}`);
 
       const color: Recommendation["color"] =
         totalScore >= 70 ? "green" : totalScore >= 50 ? "yellow" : "red";
@@ -123,7 +142,9 @@ export function scoreTeam(args: {
         winRateScore,
         counterScore,
         itemOverlapScore: overlapBonus,
+        teamFitScore,
         matchups,
+        newTags,
         tags,
         color,
       };

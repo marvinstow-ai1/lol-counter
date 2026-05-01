@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { CounterCard } from "@/components/CounterCard";
 import { ItemCard } from "@/components/ItemCard";
@@ -87,6 +87,22 @@ export default function Home() {
         c.counter_role === roleFilter ||
         c.counter_role == null
     ) ?? [];
+
+  // Only show role tabs that have at least one counter for this champion
+  const availableRoleTabs = useMemo<RoleFilter[]>(() => {
+    if (!data) return [...ROLE_FILTERS];
+    const present = new Set(
+      data.counters
+        .map((c) => c.counter_role)
+        .filter((r): r is string => Boolean(r))
+    );
+    return ROLE_FILTERS.filter((r) => r === "ALL" || present.has(r));
+  }, [data]);
+
+  // Reset filter if the current selection became unavailable
+  useEffect(() => {
+    if (!availableRoleTabs.includes(roleFilter)) setRoleFilter("ALL");
+  }, [availableRoleTabs, roleFilter]);
 
   return (
     <main className="min-h-screen relative">
@@ -212,6 +228,24 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Quick actions: take into Team Counter */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 -mt-2 sm:-mt-4">
+            <a
+              href={`/team?enemy=${encodeURIComponent(data.champion.id)}`}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-rift-danger/15 hover:bg-rift-danger/25 border border-rift-danger/40 text-rift-danger font-semibold text-xs sm:text-sm uppercase tracking-widest transition-all hover:scale-[1.02]"
+            >
+              <span className="w-2 h-2 rounded-full bg-rift-danger" />
+              + Add as Enemy
+            </a>
+            <a
+              href={`/team?ally=${encodeURIComponent(data.champion.id)}`}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 font-semibold text-xs sm:text-sm uppercase tracking-widest transition-all hover:scale-[1.02]"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              + Add to my Team
+            </a>
+          </div>
+
           {/* Counters */}
           <div className="mb-8 sm:mb-12">
             <div className="flex items-end justify-between mb-4 sm:mb-6 flex-wrap gap-3">
@@ -223,21 +257,23 @@ export default function Home() {
                   Counter Champions
                 </h3>
               </div>
-              <div className="flex gap-1.5 flex-wrap -mx-1 px-1 overflow-x-auto max-w-full">
-                {ROLE_FILTERS.map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setRoleFilter(r)}
-                    className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all whitespace-nowrap ${
-                      roleFilter === r
-                        ? "bg-rift-gold text-rift-bg shadow-lg shadow-rift-gold/30"
-                        : "glass text-rift-goldLight/60 hover:text-rift-gold"
-                    }`}
-                  >
-                    {r === "BOTTOM" ? "ADC" : r === "UTILITY" ? "Sup" : r === "MIDDLE" ? "Mid" : r}
-                  </button>
-                ))}
-              </div>
+              {availableRoleTabs.length > 1 && (
+                <div className="flex gap-1.5 flex-wrap -mx-1 px-1 overflow-x-auto max-w-full">
+                  {availableRoleTabs.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRoleFilter(r)}
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all whitespace-nowrap ${
+                        roleFilter === r
+                          ? "bg-rift-gold text-rift-bg shadow-lg shadow-rift-gold/30"
+                          : "glass text-rift-goldLight/60 hover:text-rift-gold"
+                      }`}
+                    >
+                      {r === "BOTTOM" ? "ADC" : r === "UTILITY" ? "Sup" : r === "MIDDLE" ? "Mid" : r}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {visibleCounters.length === 0 ? (

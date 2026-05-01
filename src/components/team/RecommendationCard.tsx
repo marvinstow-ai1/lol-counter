@@ -9,6 +9,8 @@ interface Props {
   version: string;
   rec: Recommendation & { champion: Champion };
   enemyMap: Record<string, Champion>;
+  onAddToTeam?: (id: string) => void;
+  alreadyOwn?: boolean;
 }
 
 const COLOR_RING = {
@@ -29,7 +31,14 @@ const COLOR_TEXT = {
   red: "text-rift-danger",
 };
 
-export function RecommendationCard({ rank, version, rec, enemyMap }: Props) {
+export function RecommendationCard({
+  rank,
+  version,
+  rec,
+  enemyMap,
+  onAddToTeam,
+  alreadyOwn,
+}: Props) {
   const [expanded, setExpanded] = useState(rank <= 3);
   const score = rec.totalScore;
   const pct = Math.max(0, Math.min(100, score));
@@ -39,6 +48,24 @@ export function RecommendationCard({ rank, version, rec, enemyMap }: Props) {
       className={`glass hover-lift rounded-2xl overflow-hidden ring-1 shadow-lg ${COLOR_RING[rec.color]}`}
     >
       <div className="relative">
+        {/* Add-to-team button (top-right of card) */}
+        {onAddToTeam && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!alreadyOwn) onAddToTeam(rec.champion.id);
+            }}
+            disabled={alreadyOwn}
+            className={`absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-lg transition-all ${
+              alreadyOwn
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 cursor-default"
+                : "bg-emerald-500/90 hover:bg-emerald-400 text-white border border-emerald-300/40 hover:scale-105"
+            }`}
+          >
+            {alreadyOwn ? "✓ Picked" : "+ Pick"}
+          </button>
+        )}
+
         {/* Splash background */}
         <div
           className="h-28 sm:h-32 relative"
@@ -106,10 +133,11 @@ export function RecommendationCard({ rank, version, rec, enemyMap }: Props) {
       </div>
 
       {/* Score breakdown */}
-      <div className="px-3 sm:px-4 py-3 grid grid-cols-3 gap-2 sm:gap-3 text-center">
-        <ScoreCell label="Win Rate" value={rec.winRateScore} max={50} />
-        <ScoreCell label="Counter" value={rec.counterScore} max={30} />
-        <ScoreCell label="Items" value={rec.itemOverlapScore} max={20} />
+      <div className="px-3 sm:px-4 py-3 grid grid-cols-4 gap-2 sm:gap-3 text-center">
+        <ScoreCell label="Win Rate" value={rec.winRateScore} max={45} />
+        <ScoreCell label="Counter" value={rec.counterScore} max={25} />
+        <ScoreCell label="Items" value={rec.itemOverlapScore} max={15} />
+        <ScoreCell label="Team Fit" value={rec.teamFitScore} max={15} />
       </div>
 
       {/* Matchups */}

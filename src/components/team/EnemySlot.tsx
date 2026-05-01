@@ -16,8 +16,10 @@ interface Props {
   champions: ChampionLite[];
   selected: string | null;
   onSelect: (id: string | null) => void;
-  /** ids that are already in other slots, hidden from suggestions */
+  /** ids already in other slots, hidden from suggestions */
   excludeIds: string[];
+  variant?: "enemy" | "ally";
+  placeholder?: string;
 }
 
 export function EnemySlot({
@@ -27,7 +29,17 @@ export function EnemySlot({
   selected,
   onSelect,
   excludeIds,
+  variant = "enemy",
+  placeholder,
 }: Props) {
+  const accent =
+    variant === "ally"
+      ? "border-emerald-400/30 focus-within:border-emerald-400/70"
+      : "border-rift-danger/30 focus-within:border-rift-danger/70";
+  const ringColor =
+    variant === "ally" ? "ring-emerald-400/40" : "ring-rift-danger/40";
+  const removeHover =
+    variant === "ally" ? "hover:bg-emerald-500/20" : "hover:bg-rift-danger/20";
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
@@ -82,9 +94,7 @@ export function EnemySlot({
   return (
     <div ref={wrapperRef} className="relative">
       <div
-        className={`glass input-glow flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-          champ ? "border-rift-blue/40" : ""
-        }`}
+        className={`glass flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all border ${accent}`}
       >
         <div className="w-7 h-7 rounded-full bg-rift-bg/80 flex items-center justify-center text-xs font-bold text-rift-gold/70 shrink-0">
           {index + 1}
@@ -95,7 +105,7 @@ export function EnemySlot({
             <img
               src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ.image}`}
               alt={champ.name}
-              className="w-9 h-9 rounded-lg ring-1 ring-rift-gold/40"
+              className={`w-9 h-9 rounded-lg ring-1 ${ringColor}`}
             />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-rift-goldLight truncate">
@@ -107,7 +117,7 @@ export function EnemySlot({
             </div>
             <button
               onClick={clear}
-              className="w-7 h-7 rounded-full hover:bg-rift-danger/20 text-rift-goldLight/60 hover:text-rift-danger transition-colors flex items-center justify-center shrink-0"
+              className={`w-7 h-7 rounded-full ${removeHover} text-rift-goldLight/60 hover:text-rift-goldLight transition-colors flex items-center justify-center shrink-0`}
               aria-label="Remove champion"
             >
               ×
@@ -122,7 +132,7 @@ export function EnemySlot({
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            placeholder={`Enemy ${index + 1}…`}
+            placeholder={placeholder ?? `${variant === "ally" ? "Ally" : "Enemy"} ${index + 1}…`}
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-rift-goldLight/30 text-rift-goldLight min-w-0"
             autoComplete="off"
             spellCheck={false}

@@ -75,7 +75,7 @@ export function SearchBar({ version, champions, onSelect }: Props) {
   return (
     <div ref={wrapperRef} className="relative w-full max-w-2xl mx-auto">
       <div
-        className={`glass input-glow flex items-center gap-3 px-5 py-4 rounded-2xl transition-all`}
+        className={`glass input-glow flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl transition-all`}
       >
         <SearchIcon />
         <input
@@ -88,16 +88,17 @@ export function SearchBar({ version, champions, onSelect }: Props) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKey}
-          placeholder="Champion suchen — z.B. Yasuo, Lee Sin, Jinx…"
-          className="flex-1 bg-transparent outline-none text-lg placeholder:text-rift-goldLight/40 text-rift-goldLight"
+          placeholder="Champion suchen…"
+          className="flex-1 bg-transparent outline-none text-base sm:text-lg placeholder:text-rift-goldLight/40 text-rift-goldLight min-w-0"
           autoComplete="off"
           spellCheck={false}
         />
         <button
           onClick={() => results[0] && pick(results[0].id)}
-          className="px-5 py-2 rounded-xl bg-gradient-to-r from-rift-blue to-rift-deep text-white font-semibold text-sm tracking-wide hover:opacity-90 transition-all shadow-lg shadow-rift-blue/30"
+          className="px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-rift-blue to-rift-deep text-white font-semibold text-xs sm:text-sm tracking-wide hover:opacity-90 transition-all shadow-lg shadow-rift-blue/30 shrink-0"
         >
-          SEARCH
+          <span className="hidden sm:inline">SEARCH</span>
+          <span className="sm:hidden">GO</span>
         </button>
       </div>
 

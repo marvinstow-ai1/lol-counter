@@ -5,6 +5,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { CounterCard } from "@/components/CounterCard";
 import { ItemCard } from "@/components/ItemCard";
 import { ChampionChips, useFavorites, useHistory } from "@/components/Favorites";
+import { NavBar } from "@/components/NavBar";
 import type { Champion, Item } from "@/types";
 
 interface ChampionLite {
@@ -89,46 +90,24 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      {/* Top bar */}
-      <header className="relative z-10 px-6 pt-8 pb-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-3">
-            <Logo />
-            <div>
-              <div className="font-display text-xl font-bold gold-text tracking-wider">
-                RIFT COUNTER
-              </div>
-              {version && (
-                <div className="text-[10px] uppercase tracking-[0.2em] text-rift-goldLight/40">
-                  Patch {version}
-                </div>
-              )}
-            </div>
-          </div>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-rift-goldLight/50 hover:text-rift-gold transition-colors"
-          >
-            data via Riot DDragon · counters via Supabase
-          </a>
-        </div>
+      <NavBar patch={version} />
 
+      {/* Top bar */}
+      <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-6 max-w-7xl mx-auto">
         {/* Hero */}
         {!selected && (
-          <div className="text-center mb-8 animate-fade-in">
-            <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass text-xs uppercase tracking-[0.3em] text-rift-gold/80">
+          <div className="text-center mb-6 sm:mb-8 animate-fade-in">
+            <div className="inline-block mb-3 sm:mb-4 px-4 py-1.5 rounded-full glass text-[10px] sm:text-xs uppercase tracking-[0.3em] text-rift-gold/80">
               ⚔ choose your matchup
             </div>
-            <h1 className="font-display text-5xl md:text-7xl font-bold mb-4 leading-tight">
+            <h1 className="font-display text-3xl sm:text-5xl md:text-7xl font-bold mb-3 sm:mb-4 leading-tight">
               <span className="gold-text">Counter</span>{" "}
               <span className="text-rift-goldLight">Every</span>{" "}
               <span className="bg-gradient-to-r from-rift-blue to-rift-deep bg-clip-text text-transparent">
                 Champion
               </span>
             </h1>
-            <p className="text-rift-goldLight/60 text-lg max-w-2xl mx-auto">
+            <p className="text-rift-goldLight/60 text-sm sm:text-lg max-w-2xl mx-auto px-2">
               Find the strongest counter picks and counter items for any LoL champion —
               across <em>every</em> role, every patch.
             </p>
@@ -165,9 +144,9 @@ export default function Home() {
 
       {/* Loading */}
       {loading && (
-        <div className="px-6 max-w-7xl mx-auto py-20 text-center">
-          <div className="inline-block w-12 h-12 border-2 border-rift-gold/30 border-t-rift-blue rounded-full animate-spin" />
-          <div className="mt-4 text-rift-goldLight/50 uppercase tracking-widest text-xs">
+        <div className="px-4 sm:px-6 max-w-7xl mx-auto py-16 sm:py-20 text-center">
+          <div className="inline-block w-10 h-10 sm:w-12 sm:h-12 border-2 border-rift-gold/30 border-t-rift-blue rounded-full animate-spin" />
+          <div className="mt-3 sm:mt-4 text-rift-goldLight/50 uppercase tracking-widest text-xs">
             Summoning data…
           </div>
         </div>
@@ -175,7 +154,7 @@ export default function Home() {
 
       {/* Error */}
       {error && (
-        <div className="px-6 max-w-3xl mx-auto py-8">
+        <div className="px-4 sm:px-6 max-w-3xl mx-auto py-6 sm:py-8">
           <div className="glass border-rift-danger/40 rounded-xl p-4 text-sm text-rift-danger whitespace-pre-line">
             ⚠ {error}
           </div>
@@ -184,11 +163,11 @@ export default function Home() {
 
       {/* Results */}
       {data && !loading && (
-        <section className="relative z-10 px-6 max-w-7xl mx-auto pb-24 animate-slide-up">
+        <section className="relative z-10 px-4 sm:px-6 max-w-7xl mx-auto pb-16 sm:pb-24 animate-slide-up">
           {/* Champion banner */}
-          <div className="glass-strong rounded-3xl overflow-hidden mb-10 relative">
+          <div className="glass-strong rounded-2xl sm:rounded-3xl overflow-hidden mb-6 sm:mb-10 relative">
             <div
-              className="h-64 md:h-80 relative"
+              className="h-48 sm:h-64 md:h-80 relative"
               style={{
                 backgroundImage: `linear-gradient(180deg, rgba(7,10,24,0.2), rgba(7,10,24,0.95)), url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${data.champion.id}_0.jpg)`,
                 backgroundSize: "cover",
@@ -197,35 +176,35 @@ export default function Home() {
             >
               <button
                 onClick={() => setSelected(null)}
-                className="absolute top-4 left-4 glass rounded-full px-3 py-1.5 text-xs uppercase tracking-widest hover:bg-rift-blue/10 transition-colors"
+                className="absolute top-3 sm:top-4 left-3 sm:left-4 glass rounded-full px-3 py-1.5 text-xs uppercase tracking-widest hover:bg-rift-blue/10 transition-colors"
               >
                 ← Back
               </button>
               <button
                 onClick={() => toggle(data.champion.id)}
-                className="absolute top-4 right-4 glass rounded-full w-10 h-10 flex items-center justify-center hover:bg-rift-gold/10 transition-colors"
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 glass rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-rift-gold/10 transition-colors"
                 aria-label="Toggle favorite"
               >
                 <span
-                  className={`text-lg ${isFav(data.champion.id) ? "text-rift-gold" : "text-rift-goldLight/40"}`}
+                  className={`text-base sm:text-lg ${isFav(data.champion.id) ? "text-rift-gold" : "text-rift-goldLight/40"}`}
                 >
                   ★
                 </span>
               </button>
-              <div className="absolute bottom-6 left-6 right-6 flex items-end gap-4">
+              <div className="absolute bottom-3 sm:bottom-6 left-3 sm:left-6 right-3 sm:right-6 flex items-end gap-3 sm:gap-4">
                 <img
                   src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${data.champion.image.full}`}
                   alt={data.champion.name}
-                  className="w-20 h-20 md:w-28 md:h-28 rounded-2xl ring-2 ring-rift-gold shadow-2xl"
+                  className="w-14 h-14 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-xl sm:rounded-2xl ring-2 ring-rift-gold shadow-2xl shrink-0"
                 />
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.3em] text-rift-gold mb-1">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-rift-gold mb-1">
                     counters for
                   </div>
-                  <h2 className="font-display text-4xl md:text-6xl font-bold gold-text leading-none">
+                  <h2 className="font-display text-2xl sm:text-4xl md:text-6xl font-bold gold-text leading-none truncate">
                     {data.champion.name}
                   </h2>
-                  <div className="text-rift-goldLight/70 italic mt-1">
+                  <div className="text-xs sm:text-base text-rift-goldLight/70 italic mt-1 truncate">
                     {data.champion.title}
                   </div>
                 </div>
@@ -234,22 +213,22 @@ export default function Home() {
           </div>
 
           {/* Counters */}
-          <div className="mb-12">
-            <div className="flex items-end justify-between mb-6 flex-wrap gap-4">
+          <div className="mb-8 sm:mb-12">
+            <div className="flex items-end justify-between mb-4 sm:mb-6 flex-wrap gap-3">
               <div>
                 <div className="text-[10px] uppercase tracking-[0.3em] text-rift-blue/80 mb-1">
                   Section 01
                 </div>
-                <h3 className="font-display text-3xl md:text-4xl font-bold text-rift-goldLight">
+                <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-rift-goldLight">
                   Counter Champions
                 </h3>
               </div>
-              <div className="flex gap-1.5 flex-wrap">
+              <div className="flex gap-1.5 flex-wrap -mx-1 px-1 overflow-x-auto max-w-full">
                 {ROLE_FILTERS.map((r) => (
                   <button
                     key={r}
                     onClick={() => setRoleFilter(r)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all whitespace-nowrap ${
                       roleFilter === r
                         ? "bg-rift-gold text-rift-bg shadow-lg shadow-rift-gold/30"
                         : "glass text-rift-goldLight/60 hover:text-rift-gold"
@@ -262,11 +241,11 @@ export default function Home() {
             </div>
 
             {visibleCounters.length === 0 ? (
-              <div className="glass rounded-2xl p-10 text-center text-rift-goldLight/50">
+              <div className="glass rounded-2xl p-6 sm:p-10 text-center text-rift-goldLight/50">
                 No counters found for this filter. Try a different role or champion.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                 {visibleCounters.map((c, idx) => (
                   <div key={`${c.counter_id}-${c.counter_role}-${idx}`} style={{ animationDelay: `${idx * 40}ms` }} className="animate-slide-up">
                     <CounterCard version={version} counter={c} onPick={setSelected} />
@@ -279,17 +258,17 @@ export default function Home() {
           {/* Items */}
           {data.items.length > 0 && (
             <div>
-              <div className="flex items-end justify-between mb-6">
+              <div className="flex items-end justify-between mb-4 sm:mb-6">
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.3em] text-rift-gold/80 mb-1">
                     Section 02
                   </div>
-                  <h3 className="font-display text-3xl md:text-4xl font-bold text-rift-goldLight">
+                  <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-rift-goldLight">
                     Counter Items
                   </h3>
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {data.items.map((i, idx) => (
                   <div key={i.item_id} style={{ animationDelay: `${idx * 60}ms` }} className="animate-slide-up">
                     <ItemCard version={version} itemRow={i} />
@@ -302,8 +281,8 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-rift-gold/10 mt-12">
-        <div className="max-w-7xl mx-auto px-6 py-6 text-xs text-rift-goldLight/40 flex flex-wrap justify-between gap-3">
+      <footer className="relative z-10 border-t border-rift-gold/10 mt-8 sm:mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6 text-[11px] sm:text-xs text-rift-goldLight/40 flex flex-wrap justify-between gap-3">
           <div>
             Rift Counter isn't endorsed by Riot Games. League of Legends © Riot Games, Inc.
           </div>
@@ -311,13 +290,5 @@ export default function Home() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function Logo() {
-  return (
-    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rift-gold via-rift-deep to-rift-blue flex items-center justify-center shadow-lg shadow-rift-blue/30 animate-glow">
-      <span className="font-display text-lg font-black text-rift-bg">⚔</span>
-    </div>
   );
 }
